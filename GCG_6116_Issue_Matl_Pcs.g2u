@@ -1,0 +1,737 @@
+Program.Sub.ScreenSU.Start
+Gui.Form..Create
+Gui.Form..Size(13740,10485)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..BackColor(-2147483633)
+Gui.Form..MousePointer(0)
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form..Caption("Issue Material")
+Gui.Form.txt_WO.Create(TextBox,"",True,1005,300,0,750,810,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txt_WO.MaxLength(6)
+Gui.Form.txt_Suf.Create(TextBox,"",True,510,300,0,1905,810,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txt_Suf.Event(LostFocus,Load_Material)
+Gui.Form.txt_Suf.MaxLength(3)
+Gui.Form.txt_DescFin.Create(TextBox,"",True,2235,300,0,3795,1530,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txt_DescFin.Locked(True)
+Gui.Form.txt_PartFin.Create(TextBox,"",True,1800,300,0,750,1530,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txt_PartFin.MaxLength(20)
+Gui.Form.txt_PartFin.Locked(True)
+Gui.Form.txt_RevFin.Create(TextBox,"",True,765,300,0,2715,1530,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txt_RevFin.MaxLength(3)
+Gui.Form.txt_RevFin.Locked(True)
+Gui.Form.GsGC_Matl.Create(GsGridControl)
+Gui.Form.GsGC_Matl.Size(13230,3600)
+Gui.Form.GsGC_Matl.Position(150,2010)
+Gui.Form.GsGC_Matl.Event(RowCellClick,GsGC_Matl_RowCellClick)
+Gui.Form.GsGC_Matl.Anchor(15)
+Gui.Form.lbl_WO.Create(Label,"Work Order",True,1020,255,0,765,615,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lbl_Suf.Create(Label,"Suffix",True,600,255,0,1890,615,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lbl_DateIssue.Create(Label,"Date",False,1935,255,0,3825,615,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lbl_PartFin.Create(Label,"Part to Make",True,1365,255,0,750,1320,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lbl_RevFin.Create(Label,"Rev",True,735,255,0,2715,1320,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lbl_DescFin.Create(Label,"Description",True,1935,255,0,3810,1320,True,0,"Arial",8,-2147483633,0)
+Gui.Form.cmd_Issue.Create(Button)
+Gui.Form.cmd_Issue.Size(855,375)
+Gui.Form.cmd_Issue.Position(150,9420)
+Gui.Form.cmd_Issue.Caption("Issue")
+Gui.Form.cmd_Issue.Event(Click,cmd_Issue_Click)
+Gui.Form.cmd_WObrw.Create(Button)
+Gui.Form.cmd_WObrw.Size(435,375)
+Gui.Form.cmd_WObrw.Position(2625,750)
+Gui.Form.cmd_WObrw.Event(Click,cmd_WObrw_Click)
+Gui.Form.cmd_WObrw.Caption("^")
+Gui.Form.GsGC_Items.Create(GsGridControl)
+Gui.Form.GsGC_Items.Size(13230,3600)
+Gui.Form.GsGC_Items.Position(150,5700)
+Gui.Form.GsGC_Items.Anchor(15)
+Gui.Form.GsGC_Items.Event(CellValueChanged,GsGC_Items_CellValueChanged)
+Gui.Form.dtp1.Create(DatePicker)
+Gui.Form.dtp1.Size(1935,285)
+Gui.Form.dtp1.Position(3810,795)
+Gui.Form.dtp1.Visible(False)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.External.Include.Library("450100.lib")
+V.Global.sWO.Declare
+V.Global.sSuf.Declare
+V.Global.sPart.Declare
+V.Global.sLoc.Declare
+V.Global.sSeq.Declare
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+'	V.Local.sParam.Declare
+'	V.Local.sLayout.Declare
+'	V.Local.sFile.Declare
+
+'Issue Material from file
+	'File Name
+	'File Layout (Comma Delimited):
+	'Part Length(20)
+	'Rev Length(03)
+	'Location Length(02)
+	'Quantity Length(16)
+	'Lot Length(15)
+	'Bin Length(06)
+	'Heat Length(15)
+	'Serial Length(30)
+	'Workorder Number Length(6)
+	'Workorder Suffix Length(3)
+	'Workorder Sequence Length(6)
+'	V.Local.sLayout.Set("")
+'	F.Intrinsic.String.Build("{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0}",File,Layout,Part,Rev,Loc,Qty,Lot,Bin,Heat,Serial,WO,Suf,Seq,V.Local.sParam)
+'	F.Global.General.CallWrapperSync(450100,V.Local.sParam)
+	
+	Gui.Form..ApplyTranslation
+	GUI.Form..Show
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Load_Material.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+	V.Local.sSQL.Declare
+	V.Local.sRet.Declare
+	V.Local.sPartRev.Declare
+	V.Local.sFPart.Declare
+	V.Local.sFRev.Declare
+	
+	F.ODBC.connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.puser,V.Ambient.PPass,3000)
+	
+	V.Global.sWO.Set(V.Screen.Form!txt_WO.Value)
+	V.Global.sSuf.Set(V.Screen.Form!txt_Suf.Value)
+	
+	F.Intrinsic.String.Build("SELECT PART, DESCRIPTION, DATE_CLOSED FROM V_JOB_HEADER WHERE JOB = '{0}' AND SUFFIX = '{1}';",V.Global.sWO,V.Global.sSuf,V.Local.sSQL)
+	F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL,V.Local.sRet)
+	
+	'F.Intrinsic.UI.Msgbox(V.Local.sRet)
+	
+	F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+	
+	'F.Intrinsic.UI.Msgbox(V.Local.sRet(2))
+	
+	F.Intrinsic.Control.If(V.Local.sRet(2),<>,"1/1/1900")
+		F.Intrinsic.UI.Msgbox("Work Order is closed. Please select another job.","Message")
+		F.ODBC.Connection!con.Close
+		Gui.Form.txt_WO.Text("")
+		Gui.Form.txt_Suf.Text("")
+		Gui.Form.txt_PartFin.Text("")
+		Gui.Form.txt_RevFin.Text("")
+		Gui.Form.txt_DescFin.Text("")
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+	
+		F.Intrinsic.String.RPad(V.Local.sRet(0)," ",20,V.Local.sPartRev)
+		F.Intrinsic.String.Right(V.Local.sPartRev,20,V.Local.sPartRev)
+		F.Intrinsic.String.Left(V.Local.sPartRev,17,V.Local.sFPart)
+		F.Intrinsic.String.Right(V.Local.sPartRev,3,V.Local.sFRev)
+	Gui.Form.txt_PartFin.Text(V.Local.sFPart)
+	Gui.Form.txt_RevFin.Text(V.Local.sFRev)
+	Gui.Form.txt_DescFin.Text(V.Local.sRet(1))
+	
+	
+	F.Intrinsic.String.Build("Select T1.SEQ, T1.PART, T1.LOCN, T1.DESCRIPTION, T1.UM, (T1.HOURS_ESTIMATED - T1.HOURS_ACTUAL) as QTY_TO_APPLY, T2.QTY_ONHAND, FLAG_CLOSED From V_JOB_OPERATIONS T1 LEFT JOIN V_INVENTORY_MSTR T2 ON T1.PART=T2.PART AND T1.LOCN=T2.LOCATION Where JOB = '{0}' AND SUFFIX = '{1}' AND LMO = 'M' AND SEQ < '990000' AND FLAG_CLOSED <> 'Y';",V.Global.sWO,V.Global.sSuf,V.Local.sSQL)
+	
+	F.Intrinsic.Control.If(V.DataTable.dtMaterial.Exists)
+		F.Data.DataTable.Close("dtMaterial")
+	F.Intrinsic.Control.EndIf
+	
+	F.Data.DataTable.CreateFromSQL("dtMaterial","con",V.Local.sSQL,True)
+	
+	F.ODBC.Connection!con.Close
+	
+	F.Intrinsic.Control.CallSub(Load_GvMaterial)
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.Load_Material.End
+
+Program.Sub.Load_GvMaterial.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+	
+	Gui.Form.GsGC_Matl.AddGridviewFromDatatable("gvMaterial","dtMaterial")
+	Gui.Form.GsGC_Matl.SuspendLayout()
+	Gui.Form.GsGC_Matl.SetGridviewProperty("gvMaterial","AllowSort",True)
+	Gui.Form.GsGC_Matl.SetGridviewProperty("gvMaterial","AllowFilter",True)
+	Gui.Form.GsGC_Matl.setGridViewProperty("gvMaterial","OptionsDetailShowDetailTabs",False)
+	Gui.Form.GsGC_Matl.SetGridviewProperty("gvMaterial","OptionsViewShowGroupPanel",False)
+	Gui.Form.GsGC_Matl.SetGridviewProperty("gvMaterial","OptionsViewColumnAutoWidth",True)
+	Gui.Form.GsGC_Matl.SetGridViewProperty("gvMaterial","EnableAppearanceOddRow",True)
+	Gui.Form.GsGC_Matl.BestFitColumns("gvMaterial")
+	
+	'SEQ
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","Visible",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","Caption","Seq")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","AllowEdit",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","MinWidth","30")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","SEQ","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'PART
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","Visible",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","Caption","Part Number")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","AllowEdit",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","MinWidth","30")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","PART","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'LOCN
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","Visible",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","Caption","Locn")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","AllowEdit",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","MinWidth","30")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","LOCN","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'DESCRIPTION
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","Visible",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","Caption","Description")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","AllowEdit",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","MinWidth","50")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","DESCRIPTION","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'UM
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","Visible",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","Caption","UM")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","AllowEdit",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","MinWidth","30")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","UM","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'QTY_TO_APPLY
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","Visible",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","Caption","Qty to Apply")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","AllowEdit",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","MinWidth","30")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_TO_APPLY","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'QTY_ONHAND
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","Visible",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","Caption","Qty Onhand")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","AllowEdit",False)
+	'Gui.Form.GsGC_Matl.SForm.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","CellBackColor",,LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","MinWidth","30")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","QTY_ONHAND","DisplayCustomNumeric","#,###,###,##0.0000")	
+	
+	'FLAG_CLOSED
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","Visible",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","Caption","Closed")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","AllowEdit",False)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","ReadOnly",True)
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","MinWidth","30")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","HeaderFontBold",True)
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","CellHAlignment","Center")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","CellForeColor","Black")
+	'Gui.Form.GsGC_Matl.SetColumnProperty("gvMaterial","FLAG_CLOSED","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	Gui.Form.GsGC_Matl.ResumeLayout()
+	Gui.Form.GsGC_Matl.MainView("gvMaterial")
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.Load_GvMaterial.End
+
+Program.Sub.Load_Items.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+	V.Local.sWO.Declare
+	V.Local.sSuffix.Declare
+	v.Local.sSQL.Declare	
+	
+	F.ODBC.connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.puser,V.Ambient.PPass,3000)
+
+		F.Intrinsic.String.Build("SELECT LEFT(T1.PART,17) AS PART, RIGHT(T1.PART,3) AS REV, T1.LOCATION, ' ' AS QUANTITY, 0 as PCS, T1.LOT, T1.BIN, T1.HEAT, T1.SERIAL_NUMBER AS SERIAL, '{2}' as WONUMBER, '{3}' as WOSUFFIX, '{4}' as WOSEQ, T1.USER_FIELD_7, T1.QTY_AVAILABLE_SHIP as AVALIBLE_QTY, T2.UM_INVENTORY, T1.ALLOCATED FROM V_ITEM_MASTER T1 LEFT JOIN V_INVENTORY_MSTR T2 ON T1.PART=T2.PART AND T1.LOCATION=T2.LOCATION WHERE T1.PART = '{0}' AND T1.LOCATION = '{1}' AND T1.QUANTITY > 0;",V.Global.sPart,V.Global.sLoc,V.Global.sWO,V.Global.sSuf,V.Global.sSeq,V.Local.sSQL)
+	
+	F.Intrinsic.Control.If(V.DataTable.450100.Exists)
+		F.Data.DataTable.Close("450100")
+	F.Intrinsic.Control.EndIf
+	
+	F.Data.DataTable.CreateFromSQL("450100","con",V.Local.sSQL,True)
+	
+	F.ODBC.Connection!con.Close
+	
+	F.Intrinsic.Control.CallSub(Load_Gv450100)
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.Load_Items.End
+
+Program.Sub.Load_Gv450100.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+	
+	Gui.Form.GsGC_Items.AddGridviewFromDatatable("Gv450100","450100")
+	Gui.Form.GsGC_Items.SuspendLayout()
+	Gui.Form.GsGC_Items.SetGridviewProperty("Gv450100","AllowSort",True)
+	Gui.Form.GsGC_Items.SetGridviewProperty("Gv450100","AllowFilter",True)
+	Gui.Form.GsGC_Items.setGridViewProperty("Gv450100","OptionsDetailShowDetailTabs",False)
+	Gui.Form.GsGC_Items.SetGridviewProperty("Gv450100","OptionsViewShowGroupPanel",False)
+	Gui.Form.GsGC_Items.SetGridviewProperty("Gv450100","OptionsViewColumnAutoWidth",True)
+	Gui.Form.GsGC_Items.SetGridViewProperty("Gv450100","EnableAppearanceOddRow",True)
+	Gui.Form.GsGC_Items.BestFitColumns("Gv450100")
+	
+	'PART 
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","Visible",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","Caption","Part")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PART","DisplayCustomNumeric","#,###,###,##0.0000")
+
+	'REV 
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","Visible",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","Caption","Rev")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REV","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'LOCATION
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","Visible",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","Caption","Loc")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOCATION","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'QUANTITY
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","Caption","Qty to Apply")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","AllowEdit",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","ReadOnly",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","CellForeColor","Black")
+'	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","EditMaskType","Numeric")
+'	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","EditMask","#.0000")
+'	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","EditMaskAsDisplayFormat",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","QUANTITY","DisplayCustomNumeric","#,###,###,##0.0000")
+	'F.Data.DataTable.SetValueFormat("450100",-1,"QUANTITY","QUANTITY","##.0000")
+
+	'PCS
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","Caption","Pieces")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","AllowEdit",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","ReadOnly",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","CellForeColor","Black")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","DisplayCustomNumeric","#,###,###,##0")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","EditMask","0")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","PCS","EditMaskType","Numeric")
+
+	'LOT 
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","Caption","Lot")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","CellHAlignment","Center")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","LOT","DisplayCustomNumeric","#,###,###,##0.0000")
+
+	'BIN
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","Caption","Bin")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","CellHAlignment","Center")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","BIN","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'HEAT
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","Caption","Heat")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","CellHAlignment","Center")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","HEAT","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'SERIAL
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","Caption","Serial Number")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","CellHAlignment","Center")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","SERIAL","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'WONUMBER
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","Visible",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","Caption","Work Order")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WONUMBER","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'WOSUFFIX
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","Visible",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","Caption","Suffix")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSUFFIX","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'WOSEQ
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","Visible",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","Caption","Seq")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","CellHAlignment","Near")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","WOSEQ","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","REWOSEQV","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'USER_FIELD_7
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","Caption","User 7")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","AllowEdit",False)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","MinWidth","20")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","CellHAlignment","Far")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","CellForeColor","Black")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","USER_FIELD_7","DisplayCustomNumeric","#,###,###,##0.0000")	
+	
+	'AVALIBLE_QTY
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","Caption","Avalible Qty")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","CellHAlignment","Center")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","CellForeColor","Black")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","AVALIBLE_QTY","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'UM_INVENTORY
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","Visible",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","Caption","UM")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","MinWidth","20")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","CellHAlignment","Center")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","UM_INVENTORY","DisplayCustomNumeric","#,###,###,##0.0000")
+	
+	'ALLOCATED
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","Visible",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","Caption","Allocated")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","AllowEdit",False)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","ReadOnly",True)
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","CellBackColor","LightYellow")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","MinWidth","30")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","HeaderFontBold",True)
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","HeaderHAlignment","Center")
+	Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","CellHAlignment","Center")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","CellForeColor","Black")
+	'Gui.Form.GsGC_Items.SetColumnProperty("Gv450100","ALLOCATED","DisplayCustomNumeric","#,###,###,##0.0000")
+
+	Gui.Form.GsGC_Items.ResumeLayout()
+	Gui.Form.GsGC_Items.MainView("Gv450100")
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.Load_Gv450100.End
+
+Program.Sub.Form_UnLoad.Start
+Gui.Form..Show(False)
+
+	F.Intrinsic.Control.If(V.DataTable.dtMaterial.Exists)
+		F.Data.DataTable.Close("dtMaterial")
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.If(V.DataTable.450100.Exists)
+		F.Data.DataTable.Close("450100")
+	F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.End
+
+Program.Sub.Form_UnLoad.End
+
+Program.Sub.cmd_WObrw_Click.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+	
+	V.Local.sRet.Declare
+	V.Local.sPartRev.Declare
+	V.Local.sFPart.Declare
+	V.Local.sFRev.Declare
+	
+	F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+	
+	F.Intrinsic.UI.Browser(1000,"",V.Local.sRet)
+	
+	F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+		F.Intrinsic.String.Split(V.Local.sRet,"*!*",v.Local.sRet)
+		Gui.Form.txt_WO.Text(V.Local.sRet(0))
+		Gui.Form.txt_Suf.Text(V.Local.sRet(1))
+			F.Intrinsic.String.RPad(V.Local.sRet(2)," ",20,V.Local.sPartRev)
+			F.Intrinsic.String.Right(V.Local.sPartRev,20,V.Local.sPartRev)
+			F.Intrinsic.String.Left(V.Local.sPartRev,17,V.Local.sFPart)
+			F.Intrinsic.String.Right(V.Local.sPartRev,3,V.Local.sFRev)
+		Gui.Form.txt_PartFin.Text(V.Local.sFPart.Trim)
+		Gui.Form.txt_RevFin.Text(V.Local.sFRev.Trim)
+		Gui.Form.txt_DescFin.Text(V.Local.sRet(3))
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.CallSub(Load_Material)
+	
+	F.Intrinsic.Control.ExitSub
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.cmd_WObrw_Click.End
+
+Program.Sub.GsGC_Matl_RowCellClick.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+	Gui.Form.GsGC_Matl.GetCellValueByColumnName("gvMaterial","PART",V.Args.RowIndex,V.Global.sPart)
+	Gui.Form.GsGC_Matl.GetCellValueByColumnName("gvMaterial","LOCN",V.Args.RowIndex,V.Global.sLoc)
+	Gui.Form.GsGC_Matl.GetCellValueByColumnName("gvMaterial","SEQ",V.Args.RowIndex,V.Global.sSeq)
+	
+	'F.Intrinsic.Control.SelectCase(V.Args.Column)
+		
+		F.Intrinsic.Control.CallSub(Load_Items)
+	
+	'F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.GsGC_Matl_RowCellClick.End
+
+Program.Sub.cmd_Issue_Click.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+	
+	V.Local.iSumPcs.Declare
+	
+	F.Data.DataTable.Compute("450100","SUM(PCS)","",V.Local.iSumPcs)
+	
+	F.Intrinsic.Control.CallSub(Update_User7)
+	
+	F.Data.DataTable.RemoveColumn("450100","USER_FIELD_7")
+	F.Data.DataTable.RemoveColumn("450100","AVALIBLE_QTY")
+	F.Data.DataTable.RemoveColumn("450100","UM_INVENTORY")
+	F.Data.DataTable.RemoveColumn("450100","PCS")
+	F.Data.DataTable.RemoveColumn("450100","ALLOCATED")
+	
+	F.Data.DataTable.SetValueFormat("450100",-1,"QUANTITY","QUANTITY","##.0000")
+	
+	F.Intrinsic.Control.CallSub(450100Sync)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.cmd_Issue_Click.End
+
+Program.Sub.GsGC_Items_CellValueChanged.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+	
+'	Function.Intrinsic.Debug.InvokeDebugger
+'	Function.Intrinsic.Debug.Stop
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.GsGC_Items_CellValueChanged.End
+
+Program.Sub.Update_User7.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+	V.Local.iCount.Declare(Long,0)
+	V.Local.iC.Declare(Long,0)
+	V.Local.sSQL.Declare
+	V.Local.sRet.Declare
+	'V.Local.sPart.Declare 	'0
+	'V.Local.sRet.Declare  	'1
+	V.Local.sGSSPart.Declare
+	V.Local.sLoc.Declare	'2
+	V.Local.iPcs.Declare 	'4
+	V.Local.sLot.Declare	'5
+	V.Local.sBin.Declare	'6
+	V.Local.sHeat.Declare	'7
+	V.Local.sSerial.Declare	'8
+'	V.Local.sUF7.Declare	'12
+	V.Local.iUF7.Declare
+	
+	Gui.Form.GsGC_Items.GetRowCount("Gv450100",V.Local.iCount)
+	'Open Connection
+	F.ODBC.connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.puser,V.Ambient.PPass,3000)
+	
+	F.Intrinsic.Control.DoUntil(V.Local.iC,=,V.Local.iCount)
+		Gui.Form.GsGC_Items.GetRowValues("Gv450100",V.Local.iC,V.Local.sRet)
+'PART - REV - LOCATION - QUANTITY - PCS - LOT - BIN - HEAT - SERIAL - WONUMBER - WOSUFFIX - WOSEQ - USER_FIELD_7 - AVALIBLE_QTY - UM_INVENTORY - ALLOCATED
+		F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+		F.Intrinsic.String.GSSPartString(V.Local.sRet(0),V.Local.sRet(1),V.Local.sGSSPart)
+		V.Local.sLoc.Set(V.Local.sRet(2))
+		V.Local.iPcs.Set(V.Local.sRet(4))
+		V.Local.sLot.Set(V.Local.sRet(5))
+		V.Local.sBin.Set(V.Local.sRet(6))
+		V.Local.sHeat.Set(V.Local.sRet(7))
+		V.Local.sSerial.Set(V.Local.sRet(8))
+		'V.Local.sUF7.Set(V.Local.sRet(12))
+		F.Intrinsic.Control.If(V.Local.sRet(12).IsNumeric)
+			V.Local.iUF7.Set(V.Local.sRet(12))
+			F.Intrinsic.Control.If(V.Local.iPcs,>,V.Local.iUF7)
+				F.Intrinsic.UI.Msgbox("Pcs qty is greater than User 7 qty. A manual adjustment will need to be made on this item record.","Message")
+			F.Intrinsic.Control.Else
+				F.Intrinsic.Math.Sub(V.Local.iUF7,V.Local.iPcs,V.Local.iUF7)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.Else
+			F.Intrinsic.UI.Msgbox("User 7 data is not numeric.","Message")
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.String.Build("Update ITEM_MASTER Set USER_FIELD_7 = '{0}' Where PART = '{1}' and LOCATION = '{2}' and LOT = '{3}' and BIN = '{4}' and HEAT = '{5}' and SERIAL_NUMBER = '{6}';",V.Local.iUF7,V.Local.sGSSPart,V.Local.sLoc,V.Local.sLot,V.Local.sBin,V.Local.sHeat,V.Local.sSerial,V.Local.sSQL)
+		
+		F.ODBC.Connection!con.Execute(V.Local.sSQL)
+			
+		F.Intrinsic.Math.Add(V.Local.iC,1,V.Local.iC)
+	F.Intrinsic.Control.Loop
+	
+	'Close Connection
+	F.ODBC.Connection!con.Close
+	
+	F.Intrinsic.Control.ExitSub
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+Program.Sub.Update_User7.End
